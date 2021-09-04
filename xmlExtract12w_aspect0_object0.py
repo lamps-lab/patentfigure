@@ -17,8 +17,8 @@ import os
 
 mydb=mysql.connector.connect(
 	host='hawking.cs.odu.edu',
-	user='xwei',
-	passwd='Xwei@01123585',
+	user='---',
+	passwd='---',
 	database='uspto_2001_2020_figs',
 	auth_plugin='mysql_native_password'
 )
