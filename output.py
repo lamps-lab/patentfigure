@@ -187,22 +187,22 @@ def patent_json(index):
     return json_name
 
 #def output_json():
-    parser = get_args()
-    args = parser.parse_args()
-    json_output = args.jsonDirectory
-    amazon_paths = args.amazonDirectory
-    rel_paths = os.listdir(amazon_paths)
-    try:
-        with open(os.path.join(json_output, 'design2019.json'), 'w', encoding='utf-8') as fp:
-            for i in range(len(rel_paths)):
-                sample = patent_json(i)
-                json.dump(sample, fp, ensure_ascii=False)
-                fp.write("\n")
-            fp.close()
-            print("Done!")
-    except Exception as error:
-        print(error)
-    return f"Total segmented images: {len(rel_paths)}"
+#    parser = get_args()
+#    args = parser.parse_args()
+#    json_output = args.jsonDirectory
+#    amazon_paths = args.amazonDirectory
+#    rel_paths = os.listdir(amazon_paths)
+#    try:
+#        with open(os.path.join(json_output, 'design2019.json'), 'w', encoding='utf-8') as fp:
+#            for i in range(len(rel_paths)):
+#                sample = patent_json(i)
+#                json.dump(sample, fp, ensure_ascii=False)
+#                fp.write("\n")
+#            fp.close()
+#            print("Done!")
+#    except Exception as error:
+#        print(error)
+#    return f"Total segmented images: {len(rel_paths)}"
 
 #results = output_json()
 #print(results)
@@ -223,18 +223,5 @@ if __name__ == "__main__":
     process.join()
 
 
-
-#if __name__ == "__main__":
-#    processes = []
-#    num_cpu = mp.cpu_count()
-#    for _ in range(num_cpu):
-#        p = Process(target=output_json)
-#        p.start()
-#        processes.append(p)
-
-#    for process in processes:
-#        process.join()
-#results = output_json()
-#print(results)
 finish = time.perf_counter()
 print("Finished in {} seconds".format(finish-start))
