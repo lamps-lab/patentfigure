@@ -1,12 +1,16 @@
 # PatentFigureSegmentation
-This project is about the segmentation of patent drawings using a pipeline integrated with Transformer method. 
+This project is about the segmentation of patent drawings using a pipeline integrated with Transformer model. 
 The following steps were carried out in order to perform the segmentation:
 
-- We used Amazon Rekognition tool to obtain bounding box coordinates for the figure labels
+- We used Amazon Rekognition tool to obtain bounding box coordinates for the figure labels.
 
-- We used the coordinates obtained in step 1 to wipe off the figure labels
+- We used the coordinates obtained in step 1 to wipe off the figure labels.
 
-- Then, we used Transformer method to segment the patent drawings and their corresponding labels.
+- We processed the figure only images before applying a Transformer model on the images.
+
+- Then, we used Transformer model to segment the patent drawings and their corresponding labels.
+
+- The output are segmented images and a json file that includes the metadata extracted from each sub-figure in the patent drawings.
 
 # Running the Pipeline
 1.  Clone this repository and create a python virtual environment and activate it.
