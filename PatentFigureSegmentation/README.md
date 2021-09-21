@@ -1,5 +1,5 @@
 # PatentFigureSegmentation
-This project involves segmenting figures and labels in patent figures using Transformer method. 
+This project is about the segmentation of patent drawings using a pipeline integrated with Transformer method. 
 The following steps were carried out in order to perform the segmentation:
 
 - We used Amazon Rekognition tool to obtain bounding box coordinates for the figure labels
