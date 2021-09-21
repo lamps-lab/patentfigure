@@ -9,7 +9,7 @@ The following steps were carried out in order to perform the segmentation:
 - Then, we used Transformer method to segment the patent drawings and their corresponding labels.
 
 # Running the Pipeline
-1 Clone this repository and create a python virtual environment and activate it.
+1.  Clone this repository and create a python virtual environment and activate it.
 2. run: pip install -r requirements.txt
 3. To wipe out the labels and process the images for the transformer, create a directory and inside the directory, create anotrher directory and name it **img**.
 4. From the root directory, run the command below:
