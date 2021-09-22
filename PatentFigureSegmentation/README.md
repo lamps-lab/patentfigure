@@ -20,7 +20,7 @@ The following steps were carried out in order to perform the segmentation:
       - python3 processing.py <image_path> --amazonDirectory <amazon_filepath> --processingDirectory </processing_dir/created/in/step3>
 
 5. Next step is to run the transformer on the processed images. run the command below:
-    - python3 test_ex.py --loaddirec "MedT.pth" --val_dataset "processing_dir/created/in/step3" --direc 'path for results to be saved' --batch_size 1 --modelname "MedT" --imgsize 128 --gray "no"
+    - python3 test_ex.py --loaddirec "MedT.pth" --val_dataset "processing_dir/created/in/step3" --direc 'where/to/save/transformer/result' --batch_size 1 --modelname "MedT" --imgsize 128 --gray "no"
 
 6. Finally, to segment the images, run the command below:
     - python3 output.py <image_path> --amazonDirectory <amazon_filepath> --TransformerDirectory <path/where/you/saved/transformer/result> --jsonDirectory <path/to/save/json/file> --outputDirectory <path/to/save/segmented/images>
