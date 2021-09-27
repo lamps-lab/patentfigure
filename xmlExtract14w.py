@@ -9,7 +9,6 @@
 # use flair (BiLSTM-CRF) NER to extract aspect and object
 # so you have to create an environment for flair with the following commands
 #conda create -n flair python=3.6
-#activate flair
 #conda activate flair
 #pip install flair
 
