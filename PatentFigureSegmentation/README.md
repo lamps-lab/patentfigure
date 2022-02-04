@@ -12,7 +12,7 @@ The following steps were carried out in order to perform the segmentation:
 
 5. We then used a distance-based method to match each figure label to its corresponding subfigure in the file.
 
-5. Finally, the output are segmented images and a json file that includes the metadata extracted from each sub-figure in the patent drawings.
+5. Finally, the outputs are segmented images and a json file that includes the metadata extracted from each sub-figure in the patent drawings.
 
 # Running the Pipeline
 1.  Clone this repository and create a python virtual environment and activate it.
