@@ -25,7 +25,7 @@ The following steps were carried out in order to perform the segmentation:
     - python3 test_ex.py --loaddirec "MedT.pth" --val_dataset "processing_dir/excluding/img/directory/created/in/step3" --direc 'where/to/save/transformer/result' --batch_size 1 --modelname "MedT" --imgsize 128 --gray "no"
 
 6. Finally, to segment the images, run the command below:
-    - python3 segmentImage_json.py <image_path> --amazonDirectory <amazon_filepath> --TransformerDirectory <path/where/you/saved/transformer/result> --jsonDirectory <path/to/save/json/file> --outputDirectory <path/to/save/segmented/images>
+    - python3 segmentImage_json.py <image_path> --amazonDirectory <amazon_filepath> --TransformerDirectory <path/where/you/saved/transformer/result> --jsonDirectory <path/to/save/json/file> --outputDirectory <path/to/save/segmented/images> --jsonFilename <e.g. design2019>
 
 ## Example
 - We have included few images and their corresponding amazon bounding box information in the **test** folder to test the pipeline.  
