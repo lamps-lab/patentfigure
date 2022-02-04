@@ -4,9 +4,9 @@ The following steps were carried out in order to perform the segmentation:
 
 1. We used Amazon Rekognition tool to obtain bounding box coordinates for the figure labels.
 
-2. We used the coordinates obtained in step 1 to wipe off the figure labels.
+2. We used the coordinates obtained in step 1 to mask off the figure labels.
 
-3. We then processed the figure only images before applying a Transformer model on the images.
+3. We then processed the figure only images before applying a Transformer segmentation model on the images.
 
 4. Then, we used Transformer model to segment the patent drawings and their corresponding labels.
 
@@ -17,13 +17,13 @@ The following steps were carried out in order to perform the segmentation:
 2. run: pip install -r requirements.txt
 3. To wipe out the labels and process the images for the transformer, create a directory for processing the images, and inside the directory, create another directory and name it **img**.
 4. From the root directory, run the command below:
-      - python3 processing.py <image_path> --amazonDirectory <amazon_filepath> --processingDirectory </processing_dir/created/in/step3>
+      - python3 processing_updated.py <image_path> --amazonDirectory <amazon_filepath> --processingDirectory </processing_dir/ends/with/img/created/in/step3>
 
 5. Next step is to run the transformer on the processed images. run the command below:
-    - python3 test_ex.py --loaddirec "MedT.pth" --val_dataset "processing_dir/created/in/step3" --direc 'where/to/save/transformer/result' --batch_size 1 --modelname "MedT" --imgsize 128 --gray "no"
+    - python3 test_ex.py --loaddirec "MedT.pth" --val_dataset "processing_dir/excluding/img/directory/created/in/step3" --direc 'where/to/save/transformer/result' --batch_size 1 --modelname "MedT" --imgsize 128 --gray "no"
 
 6. Finally, to segment the images, run the command below:
-    - python3 output.py <image_path> --amazonDirectory <amazon_filepath> --TransformerDirectory <path/where/you/saved/transformer/result> --jsonDirectory <path/to/save/json/file> --outputDirectory <path/to/save/segmented/images>
+    - python3 segmentImage_json.py <image_path> --amazonDirectory <amazon_filepath> --TransformerDirectory <path/where/you/saved/transformer/result> --jsonDirectory <path/to/save/json/file> --outputDirectory <path/to/save/segmented/images>
 
 ## Example
 - We have included few images and their corresponding amazon bounding box information in the **test** folder to test the pipeline.  
