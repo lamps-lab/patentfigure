@@ -10,6 +10,8 @@ The following steps were carried out in order to perform the segmentation:
 
 4. Then, we used Transformer model to segment the patent drawings and their corresponding labels.
 
+5. We then used a distance-based method to match each figure label to its corresponding subfigure in the file.
+
 5. Finally, the output are segmented images and a json file that includes the metadata extracted from each sub-figure in the patent drawings.
 
 # Running the Pipeline
