@@ -29,11 +29,8 @@ def resize_boundingbox(index):
     parser = get_args()
     args = parser.parse_args()
     # original images
-    img_dir = args.file_path
-    img_only, img_path = figure_only(index)
-    _, label_name = extract_label_bboxes(index)
-    #new_label_name = finetune_label(label_name)
-#    img_path = os.path.join(img_dir, rel_path)
+    #img_dir = args.file_path
+    img_only, img_path, label_name = figure_only(index)
     
     output_dir = args.outputDirectory
     # Transformer prediction images
@@ -79,7 +76,7 @@ def resize_boundingbox(index):
         
         json_name['patent_id'] = os.path.splitext(img_path)[0]   # [:19]
         json_name["Figure_file"] = img_path
-        json_name["n_subfigures"] = len(contours)
+        json_name["n_subfigures"] = len(label_name)
         
         #minDistIndex = -float('inf')
         default = "999" 
@@ -97,24 +94,25 @@ def resize_boundingbox(index):
             h = int(h * scaley)
            
             (ptX, ptY) = (w / 2 + x), (h / 2 + y)  # center of the figure
-            label_cent = calc_label_center(index)   # center of the labels
-            D = AmazonDist_label_image((ptX, ptY), label_cent)   # calculating the distance between the figure and labels
-            minDistIndex = min(D, key=D.get)            # index of label with the smallest distance to the figure
-            labelList = list(label_name.values())  # label list
-            label = labelList[minDistIndex]             # closest label to the figure
-            figureDigit = re.findall('\d*\d+', label)   # label digit in a list
-            if len(figureDigit) == 0:              # if label is not matched, we put 0
+            image_mid = (ptX, ptY)
+            label_cent, _ = calc_label_center(index)   # center of the labels
+            D = AmazonDist_label_image(image_mid, label_cent)   # calculating the distance between the figure and labels
+            minDistIndex = min(D, key=D.get, default = "empty")            # index of label with the smallest distance to the figure
+              
+            if minDistIndex == 'empty':              # if label is not matched, we put default number
             
                 labelNum = int(default + str(defaultNum))
                 sub_file["subfigure_id"] = labelNum
                 sub_file["subfigure_file"] = img_path[:-4] + "_" + str(labelNum) + '.png'
-                sub_file["subfigure_label"] = label
+                sub_file["subfigure_label"] = labelNum
                 sub_list.append(sub_file)
 
                 ROI = im[y:y + h, x:x + w]
                 cv2.imwrite(filename[:-4] + "_{}.png".format(labelNum), ROI)
                 defaultNum += 1
             else:
+                label = label_name[minDistIndex]             # closest label to the figure
+                figureDigit = re.findall('\d*\d+', label) 
                 figureDigit = figureDigit[0]
                 sub_file["subfigure_id"] = int(figureDigit)
                 sub_file["subfigure_file"] = img_path[:-4] + "_" + figureDigit + '.png'
@@ -129,9 +127,11 @@ def resize_boundingbox(index):
         # if check == 'Not_found':
         #     json_name.clear()
     except Exception as error:
+        errorList = open("/data/kajay/Errors/errorList_" + jsonFilename + ".txt", 'a')
+        errorList.write(img_path + "\n")
         print(error)
 #        print(filename)    
-    return json_name, filename
+    return json_name
 #    print('**************************** Resized the bounding Box ******************************* ')
 
 
@@ -141,8 +141,8 @@ json_output = args.jsonDirectory
 amazon_paths = args.amazonDirectory
 jsonFilename = args.jsonFilename
 rel_paths = os.listdir(amazon_paths)
-#indices = list(range(len(rel_paths)))
-indices = list(range(50))  # just for testing
+indices = list(range(len(rel_paths)))
+#indices = list(range(50))  # just for testing
 if __name__ == "__main__":
     fp = open(os.path.join(json_output, jsonFilename + '.json'), 'w', encoding='utf-8',)
     p = mp.cpu_count()
@@ -155,4 +155,4 @@ if __name__ == "__main__":
 
 
 finish = time.perf_counter()
-print("Finished in {} seconds".format(finish-start))
+# print("Finished in {} seconds".format(finish-start))

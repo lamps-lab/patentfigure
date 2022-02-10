@@ -11,6 +11,11 @@ from scipy.spatial import distance
 import multiprocessing as mp
 from multiprocessing import Pool
 import time
+import re
+import warnings
+
+
+warnings.filterwarnings("ignore")
 
 start = time.perf_counter()
 """
@@ -65,32 +70,171 @@ def get_imageFiles():
 """This function takes in the label info and returns label
 bounding box and label name
 """
+
 def extract_label_bboxes(index):
-    bounding_boxes = {}
-    label_name = {}
     label_info = get_amazonFiles(index)
     
+    texts = []
     try:
         
         if type(label_info) is dict and "TextDetections" in label_info.keys():
             contents = label_info['TextDetections']
             for i, j in enumerate(contents):
-                if j['Type'] == 'LINE' and j["Confidence"] >= 75:
+                if j['Type'] == 'LINE' and j["Confidence"] >= 50:
                     bbox = j['Geometry']['BoundingBox']
-                    label = j['DetectedText']
-                    bounding_boxes[i] = bbox
-                    label_name[i] = label
+                    detectedtext = j['DetectedText']
+                    each_text = {"detectedtext":detectedtext, "geometry":bbox}
+                    texts.append(each_text)
         else:
             for i, j in enumerate(label_info):
-                if j['Type'] == 'LINE' and j["Confidence"] >= 75:
+                if j['Type'] == 'LINE' and j["Confidence"] >= 50:
                     bbox = j['Geometry']['BoundingBox']
-                    label = j['DetectedText']
-                    bounding_boxes[i] = bbox
-                    label_name[i] = label
+                    detectedtext = j['DetectedText']
+                    each_text = {"detectedtext":detectedtext, "geometry":bbox}
+                    texts.append(each_text)
     except Exception as error:
         print(error)
     
-    return bounding_boxes, label_name
+    return texts      
+
+def getLabelBoundingBox(index):
+    texts = extract_label_bboxes(index)
+    part1_copy = {}
+    part2_copy = {}
+    each_part1 = {}
+    each_part2 = {}
+    part1_all = []
+    part2_all = []
+
+    results = []
+    each_result = {}
+    try:
+
+        for i in range(0, len(texts)):
+            text = texts[i]
+            index = i
+            
+            #***************** find 'FIG. 6' or similar as a whole
+            a = re.findall("[F][[A-Za-z]?[G|g][.|,]?[ ]*[0-9][0-9]?[ ]*[0-9]?[0-9]?", text['detectedtext'])  # *:  repeat 0 to many times, +: 1 to many, ? :0 or 1 times, [0-9]? is together, so 1 number or two numbers
+            #***************** find 'Figure 3' or similar as a whole
+            b = re.findall("Figure"+"[.|,]?"+"[ ]*[0-9][0-9]?", text['detectedtext'])
+            #***************** find '1.3' or similar as a whole
+            c = re.findall('[0-9][0-9]?[.|,][0-9][0-9]?', text['detectedtext'])
+            #***************** find 'FIGURE 3' or similar as a whole
+            d = re.findall("FIGURE"+"[.|,]?"+"[ ]*[0-9][0-9]?", text['detectedtext'])
+            
+            
+            #*********case a******** find 'FIG. 6' or similar as a whole
+            if a:
+                label = "".join(a)
+                label = label.replace(" ", "")
+                each_result = {"label":label, "geometry":text['geometry']}
+                results.append(each_result)
+                # print('a:', each_result)
+            
+                
+            #***********case b****** find 'Figure 3' or similar as a whole
+            elif b:
+                label = "".join(b)
+                label = label.replace(" ", "")
+                each_result = {"label":label, "geometry":text['geometry']}
+                results.append(each_result)
+                # print('b:', each_result)
+            
+            elif d:
+                label = "".join(d)
+                label = label.replace(" ", "")
+                each_result = {"label":label, "geometry":text['geometry']}
+                results.append(each_result)
+            #***********case c****** find '1.3' or similar as a whole
+            elif c:
+                label = "".join(c)
+                each_result = {"label":label, "geometry":text['geometry']}
+                results.append(each_result)
+                # print('c:', each_result)
+        
+            #***********case d****** when 'FIG. 4' is splitted, for example, ['4', 'FIG.']
+            elif len(texts)==2:
+                part1 = re.findall("[F][[A-Za-z]?[G|g][.|,]?[ ]*", text['detectedtext'])
+                part2 = re.findall("[0-9][0-9]?", text['detectedtext'])   # 20180319  =>> ['20', '18', '03', '19']
+            
+                # print('part1:', part1)
+                # print('part2:', part2)
+                
+                part1 = "".join(part1)
+                part2 = "".join(part2)
+                
+                geometry = text['geometry']
+                
+                if part1 != '':
+                    
+                    part1_copy = {"part":part1, "geometry":geometry}
+                    
+                if part2 != '':
+                    part2_copy = {"part":part2, "geometry":geometry}
+                    
+                    
+            #***********case e****** when there are more elements in the extracted text, but 'FIG. x' is splitted and thus can't be solved by a. 
+            # for example,  ['fn', '1_1/_I', '7', '6', 'FIG.', 'FIG.']
+            # for example,  ['00000', 'NFC', '00000', 'FIG. 3']    # this is solved by both case a and case e
+            # for example,  ['10', 'C:sering...', '5:51', 'FIG.', "20180319 Estmdted Tas'r R: competion ry a", 'Segencing...'] 
+            elif len(texts) > 2:
+                part1 = re.findall("[F][[A-Za-z]?[G|g][.|,]?[ ]*", text['detectedtext'])
+                part2 = re.findall("[0-9][0-9]?", text['detectedtext'])
+            
+                # print('part1:', part1)
+                # print('part2:', part2)
+                
+                part1 = "".join(part1)
+                
+                if len(part2) == 1:
+                    part2 = "".join(part2)
+                    # print('22222')
+                else:
+                    part2 = ''
+                    
+                # print('part2:', part2)
+                
+                if part1 != '':
+                    each_part1 = {"label":part1, "geometry":text['geometry']}
+                    part1_all.append(each_part1)
+                    #print('part1 in e :', part1_all)
+                    
+                if part2 != '':
+                    each_part2 = {"label":part2, "geometry":text['geometry']}
+                    part2_all.append(each_part2)
+                    #print('part2 in e :', part2_all)
+
+
+        # put parts together
+        if part1_copy != {} and part2_copy != {}:      
+            complete_label = part1_copy['part'] + part2_copy['part']   
+            
+            # print('complete_label:', complete_label)
+            each_result = {"label":complete_label, "geometry":part1_copy['geometry']}
+            results.append(each_result)
+            
+
+        # put parts together
+        if len(part1_all) <= len(part2_all):
+            for i in range(0, len(part1_all)):
+                if part1_all[i]["label"] != '' and part2_all[i]["label"] != '':      
+                    complete_label = part1_all[i]["label"] + part2_all[i]["label"]  
+                
+                    each_result = {"label":complete_label, "geometry":part1_all[i]['geometry']}
+                    results.append(each_result)
+
+        elif len(part1_all) > len(part2_all):
+            for i in range(0, len(part2_all)):
+                if part1_all[i]["label"] != '' and part2_all[i]["label"] != '':      
+                    complete_label = part1_all[i]["label"] + part2_all[i]["label"]   
+                
+                    each_result = {"label":complete_label, "geometry":part1_all[i]['geometry']}
+                    results.append(each_result)
+    except Exception as error:
+        print(error)
+    
+    return results
 
     
 """
@@ -103,9 +247,10 @@ def label_points(index):
     args = parser.parse_args()
     img_dir = args.file_path
     img_paths =  get_imageFiles()   # list of figure files
-    bbox, _ = extract_label_bboxes(index)
+    label_and_bbox = getLabelBoundingBox(index)
     
     label_conv_points = []
+    label_names = []
     # get the current figure file
     current_img = img_paths[index]
     #img_path = os.path.join(img_dir, current_img)
@@ -113,11 +258,15 @@ def label_points(index):
     try:
         img = cv2.imread(os.path.join(img_dir, current_img))
     
-        for k, v in bbox.items():
+        for info in label_and_bbox:
             if img is not None:
                 h, w = img.shape[:2]
-                width, height = v['Width'], v['Height']
-                left, top = v['Left'], v['Top']
+                # get the label name
+                label_name = info['label']
+                # get the bounding box
+                geometry = info['geometry']
+                width, height = geometry['Width'], geometry['Height']
+                left, top = geometry['Left'], geometry['Top']
     
                 # convert back the amazon coordinates to the original coordinates
                 width = int(width * w)
@@ -125,11 +274,12 @@ def label_points(index):
                 left = int(left * w)
                 top = int(top * h)
                 label_conv_points.append((left, width, top, height))
+                label_names.append(label_name)
             else:
                 break    
     except Exception as error:
         print(error)
-    return label_conv_points, current_img
+    return label_conv_points, label_names, current_img
 
 
 """The function below helps to calculate the distance of the labels 
@@ -137,7 +287,7 @@ which will be used to find the distance between the images and the labels
 """
 def calc_label_center(index):
     label_cent = []
-    label_coord, _= label_points(index)
+    label_coord, label_names, _= label_points(index)
     try:
         
         # case for a single image
@@ -160,7 +310,7 @@ def calc_label_center(index):
     except Exception as error:
         print(error)
     
-    return label_cent
+    return label_cent, label_names
 
 """This function calculates the distance between the image and the labels"""
 # # find the distance between the label coordinates and the image coordinates
@@ -196,7 +346,7 @@ def figure_only(index):
     parser = get_args()
     args = parser.parse_args()
     output_dir = args.outputDirectory  # directory to save the segmented figures
-    label_coord, img_path = label_points(index)
+    label_coord, lb_names, img_path = label_points(index)
     img_dir = args.file_path   # figures directories  
     image = cv2.imread(os.path.join(img_dir, img_path))
     try:    
@@ -221,7 +371,7 @@ def figure_only(index):
     except Exception as error:
         print(error)
 
-    return image, img_path
+    return image, img_path, lb_names
 
 
 """This function takes the figure without labels and resize it so we can apply the
@@ -232,8 +382,8 @@ def preprocessing(index):
     process_dir = args.processingDirectory
     try:
 
-        img, img_path = figure_only(index)
-        image = original = img.copy()
+        img, img_path, _ = figure_only(index)
+        image = img.copy()
     
         #### Saving input images #################
         original_res= resize(image, (128, 128, 3), mode='constant', preserve_range=True)
@@ -245,13 +395,13 @@ def preprocessing(index):
 parser = get_args()
 args = parser.parse_args()
 img_paths = args.file_path
-#rel_paths = os.listdir(img_paths)
-rel_paths = range(50)  # just for testing
+rel_paths = os.listdir(img_paths)
+#rel_paths = range(50)  # just for testing
 
 #This runs the processing in parallel across the cpu cores
 if __name__ == "__main__":
-    #indices = list(range(len(rel_paths)))
-    indices = list(rel_paths)  # just for testing
+    indices = list(range(len(rel_paths)))
+    #indices = list(rel_paths)  # just for testing
     p = mp.cpu_count()   # count the number of cpus
     process = Pool(p)
     result = process.map(preprocessing, indices)
